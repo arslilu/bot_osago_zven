@@ -7,11 +7,11 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 import asyncio
 
-# Переменные из окружения
+# Получаем токен и ключ из переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_KEY = os.getenv("API_KEY")
 
-# Инициализация бота
+# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -47,24 +47,28 @@ async def check_osago(message: Message):
         return
 
     url = f"https://service.api-assist.com/parser/osago_api/?key= {API_KEY}&vin={vin}"
+
     try:
         response = requests.get(url)
         data = response.json()
 
-        if data.get("result"):
+        if response.status_code == 200 and "result" in data:
             result = data["result"]
             answer = (
                 "✅ Полис ОСАГО найден:\n"
-                f"Серия и номер: {result.get('policyNumber', 'Не указано')}\n"
-                f"Дата начала действия: {result.get('dateStart', 'Не указано')}\n"
-                f"Дата окончания: {result.get('dateEnd', 'Не указано')}\n"
-                f"Страховая компания: {result.get('insurerName', 'Не указано')}"
+                f"▫️ Серия и номер: {result.get('policyNumber', 'Не указано')}\n"
+                f"▫️ Дата начала действия: {result.get('dateStart', 'Не указано')}\n"
+                f"▫️ Дата окончания: {result.get('dateEnd', 'Не указано')}\n"
+                f"▫️ Страховая компания: {result.get('insurerName', 'Не указано')}"
             )
+        elif "message" in data:
+            answer = f"ℹ️ {data['message']}"
         else:
             answer = "❌ Полис ОСАГО не найден."
 
     except Exception as e:
         answer = f"⚠ Ошибка при проверке ОСАГО: {e}"
+        print("Ошибка при запросе к OSAGO API:", e)
 
     await message.reply(answer)
 
@@ -91,7 +95,7 @@ async def check_fines(message: Message):
         response = requests.get(url)
         data = response.json()
 
-        if data.get("fines"):
+        if response.status_code == 200 and "fines" in data:
             answer = "⚖️ Найдены штрафы:\n"
             for fine in data["fines"]:
                 answer += (
@@ -100,13 +104,14 @@ async def check_fines(message: Message):
                     f"▫️ Сумма: {fine.get('sum')} руб.\n"
                     f"▫️ Описание: {fine.get('description')}\n"
                 )
-        elif data.get("message"):
+        elif "message" in data:
             answer = f"ℹ️ {data['message']}"
         else:
             answer = "✅ Штрафов нет"
 
     except Exception as e:
         answer = f"⚠ Ошибка при проверке штрафов: {e}"
+        print("Ошибка при запросе к Fines API:", e)
 
     await message.reply(answer)
 
@@ -125,4 +130,4 @@ async def create_osago(message: Message):
 
 # Запуск бота
 if __name__ == '__main__':
-    asyncio.run(dp.start_polling(bot))  # Указываем бота явно
+    asyncio.run(dp.start_polling(bot))
