@@ -1,17 +1,19 @@
+# bot.py
+
 import os
 import requests
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher, F, Router
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 import asyncio
 
-# Получаем из переменных окружения
+# Переменные из окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_KEY = os.getenv("API_KEY")
 
 # Инициализация бота
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 # Главное меню
 main_menu = ReplyKeyboardMarkup(
@@ -21,16 +23,13 @@ main_menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="⬇️ Скачать ОСАГО")],
         [KeyboardButton(text="📝 Оформить ОСАГО")],
     ],
-    resize_keyboard=True,
+    resize_keyboard=True
 )
-
 
 # Команда /start
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
-    await message.answer(
-        "Добро пожаловать в бот страховых услуг!", reply_markup=main_menu
-    )
+    await message.answer("Добро пожаловать в бот страховых услуг!", reply_markup=main_menu)
 
 
 # --- Функция: Проверка ОСАГО ---
@@ -73,9 +72,7 @@ async def check_osago(message: Message):
 # --- Функция: Проверка штрафов ---
 @dp.message(F.text == "⚖️ Проверить штрафы")
 async def prompt_fines(message: Message):
-    await message.reply(
-        "Введите госномер (например, С328ОА39) и номер СТС через пробел:"
-    )
+    await message.reply("Введите госномер (например, С328ОА39) и номер СТС через пробел:")
 
 
 @dp.message(F.text.contains(" "))
@@ -117,19 +114,15 @@ async def check_fines(message: Message):
 # --- Заглушка: Скачать ОСАГО ---
 @dp.message(F.text == "⬇️ Скачать ОСАГО")
 async def download_osago(message: Message):
-    await message.reply(
-        "Здесь будет возможность скачать ваш полис ОСАГО в формате PDF."
-    )
+    await message.reply("Здесь будет возможность скачать ваш полис ОСАГО в формате PDF.")
 
 
 # --- Заглушка: Оформить ОСАГО ---
 @dp.message(F.text == "📝 Оформить ОСАГО")
 async def create_osago(message: Message):
-    await message.reply(
-        "Перейдите по ссылке ниже, чтобы оформить новый полис ОСАГО:\n🔗 https://example.com/osago-form "
-    )
+    await message.reply("Перейдите по ссылке ниже, чтобы оформить новый полис ОСАГО:\n🔗 https://example.com/osago-form ")
 
 
 # Запуск бота
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(dp.start_polling())
